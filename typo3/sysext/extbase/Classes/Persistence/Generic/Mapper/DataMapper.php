@@ -132,6 +132,7 @@ class DataMapper implements \TYPO3\CMS\Core\SingletonInterface {
 				}
 			}
 		}
+		$targetType = $this->objectManager->getImplementationClassName($targetType);
 		return $targetType;
 	}
 
