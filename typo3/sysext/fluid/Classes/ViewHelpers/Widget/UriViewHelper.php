@@ -38,6 +38,12 @@ namespace TYPO3\CMS\Fluid\ViewHelpers\Widget;
 class UriViewHelper extends \TYPO3\CMS\Fluid\Core\ViewHelper\AbstractViewHelper {
 
 	/**
+	 * @var \TYPO3\CMS\Extbase\Security\Cryptography\HashService
+	 * @inject
+	 */
+	protected $hashService;
+
+	/**
 	 * Initialize arguments
 	 *
 	 * @return void
@@ -55,10 +61,11 @@ class UriViewHelper extends \TYPO3\CMS\Fluid\Core\ViewHelper\AbstractViewHelper 
 	 * @param string $section The anchor to be added to the URI
 	 * @param string $format The requested format, e.g. ".html
 	 * @param boolean $ajax TRUE if the URI should be to an AJAX widget, FALSE otherwise.
+	 * @param boolean $includeWidgetContext TRUE if the URI should contain the serialized widget context (only useful for stateless AJAX widgets)
 	 * @return string The rendered link
 	 * @api
 	 */
-	public function render($action = NULL, $arguments = array(), $section = '', $format = '', $ajax = FALSE) {
+	public function render($action = NULL, $arguments = array(), $section = '', $format = '', $ajax = FALSE, $includeWidgetContext = FALSE) {
 		if ($ajax === TRUE) {
 			return $this->getAjaxUri();
 		} else {
@@ -77,12 +84,18 @@ class UriViewHelper extends \TYPO3\CMS\Fluid\Core\ViewHelper\AbstractViewHelper 
 		if ($action === NULL) {
 			$action = $this->controllerContext->getRequest()->getControllerActionName();
 		}
-		$arguments['id'] = $GLOBALS['TSFE']->id;
+		$widgetContext = $this->controllerContext->getRequest()->getWidgetContext();
+		if ($this->arguments['includeWidgetContext'] === TRUE) {
+			$serializedWidgetContext = base64_encode(serialize($widgetContext));
+			$arguments['fluid-widget-context'] = $this->hashService->appendHmac($serializedWidgetContext);
+		} else {
+			$arguments['fluid-widget-id'] = $this->controllerContext->getRequest()->getWidgetContext()->getAjaxWidgetIdentifier();
+		}
+		$arguments['id'] = $GLOBALS['TSFE']->id ?: 1;
 		// TODO page type should be configurable
 		$arguments['type'] = 7076;
-		$arguments['fluid-widget-id'] = $this->controllerContext->getRequest()->getWidgetContext()->getAjaxWidgetIdentifier();
 		$arguments['action'] = $action;
-		return '?' . http_build_query($arguments, NULL, '&');
+		return '/index.php?' . http_build_query($arguments, NULL, '&');
 	}
 
 	/**
