@@ -20,10 +20,17 @@ namespace TYPO3\CMS\Fluid\Core\Widget;
  *                                                                        *
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
+
 /**
  * Builds the WidgetRequest if an AJAX widget is called.
  */
 class WidgetRequestBuilder extends \TYPO3\CMS\Extbase\Mvc\Web\RequestBuilder {
+
+	/**
+	 * @var \TYPO3\CMS\Extbase\Security\Cryptography\HashService
+	 * @inject
+	 */
+	protected $hashService;
 
 	/**
 	 * @var \TYPO3\CMS\Fluid\Core\Widget\AjaxWidgetContextHolder
@@ -58,7 +65,14 @@ class WidgetRequestBuilder extends \TYPO3\CMS\Extbase\Mvc\Web\RequestBuilder {
 		if (isset($rawGetArguments['action'])) {
 			$request->setControllerActionName($rawGetArguments['action']);
 		}
-		$widgetContext = $this->ajaxWidgetContextHolder->get($rawGetArguments['fluid-widget-id']);
+		$widgetId = isset($rawGetArguments['fluid-widget-id']) ? $rawGetArguments['fluid-widget-id'] : NULL;
+		if ($widgetId !== NULL) {
+			$widgetContext = $this->ajaxWidgetContextHolder->get($widgetId);
+		} else {
+			$serializedWidgetContextWithHmac = $rawGetArguments['fluid-widget-context'];
+			$serializedWidgetContext = $this->hashService->validateAndStripHmac($serializedWidgetContextWithHmac);
+			$widgetContext = unserialize(base64_decode($serializedWidgetContext));
+		}
 		$request->setWidgetContext($widgetContext);
 		return $request;
 	}

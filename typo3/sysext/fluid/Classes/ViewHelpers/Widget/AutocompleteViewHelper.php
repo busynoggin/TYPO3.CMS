@@ -49,6 +49,8 @@ class AutocompleteViewHelper extends \TYPO3\CMS\Fluid\Core\Widget\AbstractWidget
 	 */
 	protected $ajaxWidget = TRUE;
 
+	protected $storeConfigurationInSession = FALSE;
+
 	/**
 	 * @var \TYPO3\CMS\Fluid\ViewHelpers\Widget\Controller\AutocompleteController
 	 * @inject

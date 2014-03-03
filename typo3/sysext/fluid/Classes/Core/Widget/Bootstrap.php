@@ -52,9 +52,18 @@ class Bootstrap {
 		$this->objectManager = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Extbase\\Object\\ObjectManager');
 		$this->initializeConfiguration($configuration);
 		$this->configureObjectManager();
-		$ajaxWidgetContextHolder = $this->objectManager->get('TYPO3\\CMS\\Fluid\\Core\\Widget\\AjaxWidgetContextHolder');
-		$widgetIdentifier = \TYPO3\CMS\Core\Utility\GeneralUtility::_GET('fluid-widget-id');
-		$widgetContext = $ajaxWidgetContextHolder->get($widgetIdentifier);
+		$widgetIdentifier = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('fluid-widget-id');
+		$serializedWidgetContextWithHmac = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('fluid-widget-context');
+		if ($widgetIdentifier === NULL) {
+			/** @var \TYPO3\CMS\Extbase\Security\Cryptography\HashService $hashService */
+			$hashService = $this->objectManager->get('\TYPO3\CMS\Extbase\Security\Cryptography\HashService');
+			$serializedWidgetContext = $hashService->validateAndStripHmac($serializedWidgetContextWithHmac);
+			$widgetContext = unserialize(base64_decode($serializedWidgetContext));
+
+		} else {
+			$ajaxWidgetContextHolder = $this->objectManager->get('TYPO3\\CMS\\Fluid\\Core\\Widget\\AjaxWidgetContextHolder');
+			$widgetContext = $ajaxWidgetContextHolder->get($widgetIdentifier);
+		}
 		$configuration['extensionName'] = $widgetContext->getParentExtensionName();
 		$configuration['pluginName'] = $widgetContext->getParentPluginName();
 		$extbaseBootstrap = $this->objectManager->get('TYPO3\\CMS\\Extbase\\Core\\Bootstrap');

@@ -66,7 +66,7 @@ class WidgetRequestHandler extends \TYPO3\CMS\Extbase\Mvc\Web\AbstractRequestHan
 	 */
 	public function canHandleRequest() {
 		$rawGetArguments = \TYPO3\CMS\Core\Utility\GeneralUtility::_GET();
-		return isset($rawGetArguments['fluid-widget-id']);
+		return isset($rawGetArguments['fluid-widget-id']) || isset($rawGetArguments['fluid-widget-context']);
 	}
 
 	/**
