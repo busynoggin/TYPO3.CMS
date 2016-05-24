@@ -27,6 +27,9 @@ namespace TYPO3\CMS\Extbase\Mvc\Controller;
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
+
+use TYPO3\CMS\Extbase\Mvc\Web\Request;
+
 /**
  * A multi action controller. This is by far the most common base class for Controllers.
  *
@@ -491,7 +494,10 @@ class ActionController extends \TYPO3\CMS\Extbase\Mvc\Controller\AbstractControl
 				);
 				$this->controllerContext->getFlashMessageQueue()->enqueue($errorFlashMessageObject);
 			}
-			$referrer = $this->request->getInternalArgument('__referrer');
+			$referrer = NULL;
+			if ($this->request instanceof Request) {
+				$referrer = $this->request->getValidatedReferrerArguments();
+			}
 			if ($referrer !== NULL) {
 				$this->forward($referrer['actionName'], $referrer['controllerName'], $referrer['extensionName'], $this->request->getArguments());
 			}
